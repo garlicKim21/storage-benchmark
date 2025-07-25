@@ -13,7 +13,6 @@ spec:
       labels:
         app: 03-longhorn-rwo-4k-rr-multi-sts
     spec:
-      restartPolicy: OnFailure
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -32,21 +31,8 @@ spec:
       containers:
       - name: fio-test
         image: projectgreenist/fio-project:1.0
-        command: ["fio"]
-        args: [
-          "--name=03-longhorn-rwo-4k-rr-multi-sts",
-          "--filename=/data/fiotest-${HOSTNAME}.tmp",
-          "--rw=randread",
-          "--bs=4k",
-          "--ioengine=libaio",
-          "--direct=1",
-          "--size=2G",
-          "--numjobs=2",
-          "--iodepth=64",
-          "--runtime=60s",
-          "--time_based",
-          "--group_reporting"
-        ]
+        command: ["/bin/sh", "-c"]
+        args: ["fio --name=03-longhorn-rwo-4k-rr-multi-sts --filename=/data/fiotest-${HOSTNAME}.tmp --rw=randread --bs=4k --ioengine=libaio --direct=1 --size=2G --numjobs=2 --iodepth=64 --runtime=60s --time_based --group_reporting && sleep infinity"]
         env:
         - name: HOSTNAME
           valueFrom:
