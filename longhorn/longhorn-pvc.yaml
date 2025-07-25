@@ -10,15 +10,3 @@ spec:
   resources:
     requests:
       storage: 40Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: longhorn-rwo
-spec:
-  storageClassName: longhorn
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 40Gi

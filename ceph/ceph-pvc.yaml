@@ -10,15 +10,3 @@ spec:
   resources:
     requests:
       storage: 40Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: ceph-block-rwo
-spec:
-  storageClassName: ceph-block
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 40Gi
