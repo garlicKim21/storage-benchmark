@@ -13,6 +13,7 @@ spec:
       labels:
         app: 03-ceph-rwo-4k-rr-multi-sts
     spec:
+      restartPolicy: OnFailure
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

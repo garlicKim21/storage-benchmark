@@ -13,6 +13,7 @@ spec:
       labels:
         app: 04-longhorn-4k-rw-rwo-single-sts
     spec:
+      restartPolicy: OnFailure
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
