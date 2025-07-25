@@ -1,16 +1,18 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
-  name: 04-longhorn-1m-sw-single-job
+  name: 03-longhorn-4k-rr-rwo-single-sts
 spec:
-  completions: 1
-  parallelism: 1
+  serviceName: "longhorn-4k-rr-rwo-single"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 03-longhorn-4k-rr-rwo-single-sts
   template:
     metadata:
       labels:
-        app: 04-longhorn-1m-sw-single-job
+        app: 03-longhorn-4k-rr-rwo-single-sts
     spec:
-      restartPolicy: Never
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -20,19 +22,19 @@ spec:
                 operator: In
                 values: ["compute-node"]
       containers:
-      - name: 04-longhorn-1m-sw-single-job
+      - name: fio-test
         image: projectgreenist/fio-project:1.0
         command: ["fio"]
         args: [
-          "--name=04-longhorn-1m-sw-single-job",
+          "--name=03-longhorn-4k-rr-rwo-single-sts",
           "--filename=/data/fiotest-${HOSTNAME}.tmp",
-          "--rw=write",
-          "--bs=1M",
+          "--rw=randread",
+          "--bs=4k",
           "--ioengine=libaio",
           "--direct=1",
           "--size=2G",
           "--numjobs=2",
-          "--iodepth=32",
+          "--iodepth=64",
           "--runtime=60s",
           "--time_based",
           "--group_reporting"
@@ -45,7 +47,12 @@ spec:
         volumeMounts:
         - name: fio-test-volume
           mountPath: /data
-      volumes:
-      - name: fio-test-volume
-        persistentVolumeClaim:
-          claimName: longhorn-rwx
+  volumeClaimTemplates:
+  - metadata:
+      name: fio-test-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: longhorn
+      resources:
+        requests:
+          storage: 10Gi 

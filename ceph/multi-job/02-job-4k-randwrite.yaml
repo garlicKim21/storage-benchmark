@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: 02-ceph-4k-rw-multi-job
+  name: 02-ceph-rwx-4k-rw-multi-job
 spec:
   completions: 6
   parallelism: 6
   template:
     metadata:
       labels:
-        app: 02-ceph-4k-rw-multi-job
+        app: 02-ceph-rwx-4k-rw-multi-job
     spec:
       restartPolicy: Never
       affinity:
@@ -25,13 +25,13 @@ spec:
         whenUnsatisfiable: DoNotSchedule
         labelSelector:
           matchLabels:
-            app: 02-ceph-4k-rw-multi-job  
+            app: 02-ceph-rwx-4k-rw-multi-job  
       containers:
-      - name: 02-ceph-4k-rw-multi-job
+      - name: 02-ceph-rwx-4k-rw-multi-job
         image: projectgreenist/fio-project:1.0
         command: ["fio"]
         args: [
-          "--name=02-ceph-4k-rw-multi-job",
+          "--name=02-ceph-rwx-4k-rw-multi-job",
           "--filename=/data/fiotest-${HOSTNAME}.tmp",
           "--rw=randwrite",
           "--bs=4k",

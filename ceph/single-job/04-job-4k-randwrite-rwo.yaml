@@ -1,16 +1,18 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
-  name: 03-ceph-1m-sr-multi-job
+  name: 04-ceph-4k-rw-rwo-single-sts
 spec:
-  completions: 6
-  parallelism: 6
+  serviceName: "ceph-4k-rw-rwo-single"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 04-ceph-4k-rw-rwo-single-sts
   template:
     metadata:
       labels:
-        app: 03-ceph-1m-sr-multi-job
+        app: 04-ceph-4k-rw-rwo-single-sts
     spec:
-      restartPolicy: Never
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -19,27 +21,20 @@ spec:
               - key: kubernetes.io/role
                 operator: In
                 values: ["compute-node"]
-      topologySpreadConstraints:
-      - maxSkew: 2
-        topologyKey: "kubernetes.io/hostname"
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app: 03-ceph-1m-sr-multi-job
       containers:
-      - name: 03-ceph-1m-sr-multi-job
+      - name: fio-test
         image: projectgreenist/fio-project:1.0
         command: ["fio"]
         args: [
-          "--name=03-ceph-1m-sr-multi-job",
+          "--name=04-ceph-4k-rw-rwo-single-sts",
           "--filename=/data/fiotest-${HOSTNAME}.tmp",
-          "--rw=read",
-          "--bs=1M",
+          "--rw=randwrite",
+          "--bs=4k",
           "--ioengine=libaio",
           "--direct=1",
           "--size=2G",
           "--numjobs=2",
-          "--iodepth=32",
+          "--iodepth=64",
           "--runtime=60s",
           "--time_based",
           "--group_reporting"
@@ -52,7 +47,12 @@ spec:
         volumeMounts:
         - name: fio-test-volume
           mountPath: /data
-      volumes:
-      - name: fio-test-volume
-        persistentVolumeClaim:
-          claimName: ceph-block-rwo
+  volumeClaimTemplates:
+  - metadata:
+      name: fio-test-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: ceph-block
+      resources:
+        requests:
+          storage: 10Gi 

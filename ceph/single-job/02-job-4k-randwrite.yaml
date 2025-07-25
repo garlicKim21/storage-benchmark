@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: 02-ceph-4k-rw-single-job
+  name: 02-ceph-rwx-4k-rw-single-job
 spec:
   completions: 1
   parallelism: 1
   template:
     metadata:
       labels:
-        app: 02-ceph-4k-rw-single-job
+        app: 02-ceph-rwx-4k-rw-single-job
     spec:
       restartPolicy: Never
       affinity:
@@ -20,11 +20,11 @@ spec:
                 operator: In
                 values: ["compute-node"]
       containers:
-      - name: 02-ceph-4k-rw-single-job
+      - name: 02-ceph-rwx-4k-rw-single-job
         image: projectgreenist/fio-project:1.0
         command: ["fio"]
         args: [
-          "--name=02-ceph-4k-rw-single-job",
+          "--name=02-ceph-rwx-4k-rw-single-job",
           "--filename=/data/fiotest-${HOSTNAME}.tmp",
           "--rw=randwrite",
           "--bs=4k",

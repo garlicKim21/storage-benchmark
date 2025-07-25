@@ -1,16 +1,18 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
-  name: 03-longhorn-1m-sr-multi-job
+  name: 04-longhorn-rwo-4k-rw-multi-sts
 spec:
-  completions: 6
-  parallelism: 6
+  serviceName: "longhorn-4k-rw-rwo-multi"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: 04-longhorn-rwo-4k-rw-multi-sts
   template:
     metadata:
       labels:
-        app: 03-longhorn-1m-sr-multi-job
+        app: 04-longhorn-rwo-4k-rw-multi-sts
     spec:
-      restartPolicy: Never
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -20,26 +22,26 @@ spec:
                 operator: In
                 values: ["compute-node"]
       topologySpreadConstraints:
-      - maxSkew: 2
+      - maxSkew: 1
         topologyKey: "kubernetes.io/hostname"
         whenUnsatisfiable: DoNotSchedule
         labelSelector:
           matchLabels:
-            app: 03-longhorn-1m-sr-multi-job
+            app: 04-longhorn-rwo-4k-rw-multi-sts
       containers:
-      - name: 03-longhorn-1m-sr-multi-job
+      - name: fio-test
         image: projectgreenist/fio-project:1.0
         command: ["fio"]
         args: [
-          "--name=03-longhorn-1m-sr-multi-job",
+          "--name=04-longhorn-rwo-4k-rw-multi-sts",
           "--filename=/data/fiotest-${HOSTNAME}.tmp",
-          "--rw=read",
-          "--bs=1M",
+          "--rw=randwrite",
+          "--bs=4k",
           "--ioengine=libaio",
           "--direct=1",
           "--size=2G",
           "--numjobs=2",
-          "--iodepth=32",
+          "--iodepth=64",
           "--runtime=60s",
           "--time_based",
           "--group_reporting"
@@ -50,9 +52,14 @@ spec:
             fieldRef:
               fieldPath: metadata.name
         volumeMounts:
-        - name: fio-test-volume
+        - name: fio-test-volume  
           mountPath: /data
-      volumes:
-      - name: fio-test-volume
-        persistentVolumeClaim:
-          claimName: longhorn-rwx
+  volumeClaimTemplates:
+  - metadata:
+      name: fio-test-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: longhorn
+      resources:
+        requests:
+          storage: 10Gi 
