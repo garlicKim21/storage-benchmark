@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: 03-ceph-rwo-4k-rr-multi-sts
+  name: 04-longhorn-rwo-4k-rw-single-sts
 spec:
-  serviceName: "ceph-4k-rr-rwo-multi"
-  replicas: 3
+  serviceName: "longhorn-rwo-4k-rw-single"
+  replicas: 1
   selector:
     matchLabels:
-      app: 03-ceph-rwo-4k-rr-multi-sts
+      app: 04-longhorn-rwo-4k-rw-single-sts
   template:
     metadata:
       labels:
-        app: 03-ceph-rwo-4k-rr-multi-sts
+        app: 04-longhorn-rwo-4k-rw-single-sts
     spec:
       affinity:
         nodeAffinity:
@@ -21,18 +21,11 @@ spec:
               - key: kubernetes.io/role
                 operator: In
                 values: ["compute-node"]
-      topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: "kubernetes.io/hostname"
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app: 03-ceph-rwo-4k-rr-multi-sts
       containers:
       - name: fio-test
         image: projectgreenist/fio-project:1.0
         command: ["/bin/sh", "-c"]
-        args: ["fio --name=03-ceph-rwo-4k-rr-multi-sts --filename=/data/fiotest-${HOSTNAME}.tmp --rw=randread --bs=4k --ioengine=libaio --direct=1 --size=2G --numjobs=2 --iodepth=64 --runtime=60s --time_based --group_reporting && sleep infinity"]
+        args: ["fio --name=04-longhorn-rwo-4k-rw-single-sts --filename=/data/fiotest-${HOSTNAME}.tmp --rw=randwrite --bs=4k --ioengine=libaio --direct=1 --size=2G --numjobs=2 --iodepth=64 --runtime=60s --time_based --group_reporting && sleep infinity"]
         env:
         - name: HOSTNAME
           valueFrom:
@@ -46,7 +39,7 @@ spec:
       name: fio-test-volume
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: ceph-block
+      storageClassName: longhorn
       resources:
         requests:
           storage: 10Gi 

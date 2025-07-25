@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: 03-longhorn-4k-rr-rwo-single-sts
+  name: 03-longhorn-rwo-4k-rr-single-sts
 spec:
-  serviceName: "longhorn-4k-rr-rwo-single"
+  serviceName: "longhorn-rwo-4k-rr-single"
   replicas: 1
   selector:
     matchLabels:
-      app: 03-longhorn-4k-rr-rwo-single-sts
+      app: 03-longhorn-rwo-4k-rr-single-sts
   template:
     metadata:
       labels:
-        app: 03-longhorn-4k-rr-rwo-single-sts
+        app: 03-longhorn-rwo-4k-rr-single-sts
     spec:
       affinity:
         nodeAffinity:
@@ -25,7 +25,7 @@ spec:
       - name: fio-test
         image: projectgreenist/fio-project:1.0
         command: ["/bin/sh", "-c"]
-        args: ["fio --name=03-longhorn-4k-rr-rwo-single-sts --filename=/data/fiotest-${HOSTNAME}.tmp --rw=randread --bs=4k --ioengine=libaio --direct=1 --size=2G --numjobs=2 --iodepth=64 --runtime=60s --time_based --group_reporting && sleep infinity"]
+        args: ["fio --name=03-longhorn-rwo-4k-rr-single-sts --filename=/data/fiotest-${HOSTNAME}.tmp --rw=randread --bs=4k --ioengine=libaio --direct=1 --size=2G --numjobs=2 --iodepth=64 --runtime=60s --time_based --group_reporting && sleep infinity"]
         env:
         - name: HOSTNAME
           valueFrom:
