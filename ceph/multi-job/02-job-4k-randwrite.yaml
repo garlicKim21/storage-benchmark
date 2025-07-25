@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: 02-ceph-4k-rw-multi-job
+spec:
+  completions: 6
+  parallelism: 6
+  template:
+    metadata:
+      labels:
+        app: 02-ceph-4k-rw-multi-job
+    spec:
+      restartPolicy: Never
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/role
+                operator: In
+                values: ["compute-node"]
+      topologySpreadConstraints:
+      - maxSkew: 2
+        topologyKey: "kubernetes.io/hostname"
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: 02-ceph-4k-rw-multi-job  
+      containers:
+      - name: 02-ceph-4k-rw-multi-job
+        image: projectgreenist/fio-project:1.0
+        command: ["fio"]
+        args: [
+          "--name=02-ceph-4k-rw-multi-job",
+          "--filename=/data/fiotest-${HOSTNAME}.tmp",
+          "--rw=randwrite",
+          "--bs=4k",
+          "--ioengine=libaio",
+          "--direct=1",
+          "--size=2G",
+          "--numjobs=2",
+          "--iodepth=64",
+          "--runtime=60s",
+          "--time_based",
+          "--group_reporting"
+        ]
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        volumeMounts:
+        - name: fio-test-volume
+          mountPath: /data
+      volumes:
+      - name: fio-test-volume
+        persistentVolumeClaim:
+          claimName: ceph-fs-rwx

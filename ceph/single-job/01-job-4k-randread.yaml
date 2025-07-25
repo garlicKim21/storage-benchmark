@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: 01-ceph-4k-rr-single-job
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: 01-ceph-4k-rr-single-job
+    spec:
+      restartPolicy: Never
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/role
+                operator: In
+                values: ["compute-node"]
+      containers:
+      - name: 01-ceph-4k-rr-single-job
+        image: projectgreenist/fio-project:1.0
+        command: ["fio"]
+        args: [
+          "--name=01-ceph-4k-rr-single-job",
+          "--filename=/data/fiotest-${HOSTNAME}.tmp",
+          "--rw=randread",
+          "--bs=4k",
+          "--ioengine=libaio",
+          "--direct=1",
+          "--size=2G",
+          "--numjobs=2",
+          "--iodepth=64",
+          "--runtime=60s",
+          "--time_based",
+          "--group_reporting"
+        ]
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        volumeMounts:
+        - name: fio-test-volume
+          mountPath: /data
+      volumes:
+      - name: fio-test-volume
+        persistentVolumeClaim:
+          claimName: ceph-fs-rwx
